@@ -1,78 +1,126 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ShoppingCart, DollarSign, TrendingDown, Users, TrendingUp, Clock,
-  Package, Truck, XCircle, Layers, BarChart3, AlertTriangle,
+  ShoppingCart, DollarSign, TrendingDown, TrendingUp, Clock, Users, Package, Truck,
+  XCircle, Layers, BarChart3, AlertTriangle, ArrowRight, UserPlus, Warehouse,
 } from "lucide-react";
 import {
   kpiData, revenueChartData, orderStatusData, ordersByChannel, ordersByRegion,
-  topProducts, topCustomers, recentOrders, recentTransactions, lowStockItems,
-  customerAcquisition, courierPerformance, categoryData,
-  type OrderStatus,
+  topProducts, topCustomers, recentOrders, lowStockItems, customerAcquisition,
+  courierPerformance, categoryData, type OrderStatus,
 } from "@/lib/mock-data";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-
-const chartTooltipStyle = {
-  contentStyle: { background: "hsl(240 6% 10%)", border: "1px solid hsl(240 4% 20%)", borderRadius: "6px", fontSize: "12px" },
-  labelStyle: { color: "hsl(240 5% 96%)" },
-  itemStyle: { color: "hsl(240 5% 65%)" },
-};
+import { useTheme } from "next-themes";
 
 const COLORS = ["hsl(239,84%,67%)", "hsl(142,71%,45%)", "hsl(25,95%,53%)", "hsl(270,60%,60%)", "hsl(0,84%,60%)"];
 
+const employeeData = [
+  { role: "Admin", active: 3, inactive: 0 },
+  { role: "Manager", active: 5, inactive: 1 },
+  { role: "Sales", active: 12, inactive: 2 },
+  { role: "Support", active: 8, inactive: 1 },
+  { role: "Warehouse", active: 6, inactive: 0 },
+];
+
+const missingProducts = [
+  { name: "Laptop Stand Aluminum", count: 4, loss: 320 },
+  { name: "USB-C Hub 7-in-1", count: 2, loss: 158 },
+  { name: "Wireless Mouse Pro", count: 3, loss: 210 },
+];
+
 export default function Dashboard() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const chartTooltipStyle = {
+    contentStyle: {
+      background: isDark ? "hsl(240 6% 10%)" : "hsl(0 0% 100%)",
+      border: `1px solid ${isDark ? "hsl(240 4% 20%)" : "hsl(240 6% 90%)"}`,
+      borderRadius: "6px",
+      fontSize: "12px",
+    },
+    labelStyle: { color: isDark ? "hsl(240 5% 96%)" : "hsl(240 10% 10%)" },
+    itemStyle: { color: isDark ? "hsl(240 5% 65%)" : "hsl(240 4% 46%)" },
+  };
+  const gridColor = isDark ? "hsl(240 4% 20%)" : "hsl(240 6% 90%)";
+  const tickColor = isDark ? "hsl(240 5% 65%)" : "hsl(240 4% 46%)";
+
   return (
     <AppLayout>
       {/* Greeting */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">Good morning, John</h1>
+      <div className="mb-6 animate-fade-in">
+        <h1 className="text-2xl font-semibold text-foreground">Good morning, John 👋</h1>
         <p className="mt-1 text-sm text-muted-foreground">Here's what's happening across your stores today.</p>
       </div>
 
-      {/* KPIs */}
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      {/* KPI Row 1: Revenue/Profit */}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 animate-fade-in stagger-1">
+        <KpiCard title="Total Revenue" value={`$${(kpiData.revenue.value / 1000).toFixed(1)}K`} change={kpiData.revenue.change} period={kpiData.revenue.period} icon={DollarSign} />
+        <KpiCard title="Net Profit" value={`$${(kpiData.profit.value / 1000).toFixed(1)}K`} change={kpiData.profit.change} period={kpiData.profit.period} icon={TrendingUp} />
+        <KpiCard title="Gross Profit" value="$210.5K" change={11.2} period="vs last month" icon={TrendingUp} />
         <KpiCard title="Total Orders" value={kpiData.totalOrders.value.toLocaleString()} change={kpiData.totalOrders.change} period={kpiData.totalOrders.period} icon={ShoppingCart} />
-        <KpiCard title="Revenue" value={`$${(kpiData.revenue.value / 1000).toFixed(1)}K`} change={kpiData.revenue.change} period={kpiData.revenue.period} icon={DollarSign} />
-        <KpiCard title="Expenses" value={`$${(kpiData.expenses.value / 1000).toFixed(1)}K`} change={kpiData.expenses.change} period={kpiData.expenses.period} icon={TrendingDown} />
-        <KpiCard title="Customers" value={kpiData.customers.value.toLocaleString()} change={kpiData.customers.change} period={kpiData.customers.period} icon={Users} />
-        <KpiCard title="Profit" value={`$${(kpiData.profit.value / 1000).toFixed(1)}K`} change={kpiData.profit.change} period={kpiData.profit.period} icon={TrendingUp} />
-        <KpiCard title="Pending" value={kpiData.pendingOrders.value.toString()} change={kpiData.pendingOrders.change} period={kpiData.pendingOrders.period} icon={Clock} />
+      </div>
+
+      {/* KPI Row 2: Order statuses */}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 animate-fade-in stagger-2">
+        <KpiCard title="Processing Orders" value="48" change={-2.1} period="vs last week" icon={Clock} />
+        <KpiCard title="Out for Delivery" value="127" change={8.5} period="vs last week" icon={Truck} />
+        <KpiCard title="Cancelled Orders" value="12" change={-15.3} period="vs last month" icon={XCircle} />
+        <KpiCard title="Returned Orders" value="23" change={3.2} period="vs last month" icon={Package} />
+      </div>
+
+      {/* KPI Row 3: Inventory & People */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 animate-fade-in stagger-3">
+        <KpiCard title="Inventory Value" value="$142K" change={5.8} period="vs last month" icon={Warehouse} />
+        <KpiCard title="Low Stock Products" value="8" change={-12.0} period="vs last month" icon={AlertTriangle} />
+        <KpiCard title="Total Customers" value={kpiData.customers.value.toLocaleString()} change={kpiData.customers.change} period={kpiData.customers.period} icon={Users} />
+        <KpiCard title="Total Suppliers" value="24" change={4.2} period="vs last month" icon={UserPlus} />
       </div>
 
       {/* Revenue Charts */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
+      <div className="mb-6 grid gap-4 lg:grid-cols-2 animate-fade-in stagger-4">
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium text-muted-foreground">Income Overview</CardTitle>
+            <Tabs defaultValue="yearly" className="h-auto">
+              <TabsList className="h-7 bg-secondary"><TabsTrigger value="yearly" className="text-[10px] h-5 px-2">Yearly</TabsTrigger><TabsTrigger value="monthly" className="text-[10px] h-5 px-2">Monthly</TabsTrigger></TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={revenueChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis dataKey="month" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
                 <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, undefined]} />
-                <Bar dataKey="income" fill="hsl(239,84%,67%)" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="income" fill="hsl(239,84%,67%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium text-muted-foreground">Sales Performance</CardTitle>
+            <Tabs defaultValue="yearly" className="h-auto">
+              <TabsList className="h-7 bg-secondary"><TabsTrigger value="yearly" className="text-[10px] h-5 px-2">Yearly</TabsTrigger><TabsTrigger value="monthly" className="text-[10px] h-5 px-2">Monthly</TabsTrigger></TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={revenueChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis dataKey="month" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
                 <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, undefined]} />
                 <Legend wrapperStyle={{ fontSize: "11px" }} />
                 <Line type="monotone" dataKey="income" stroke="hsl(239,84%,67%)" strokeWidth={2} dot={false} name="Revenue" />
@@ -84,18 +132,151 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Order Analytics */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <Card className="border-border bg-card">
+      {/* Top 5 Cards Row */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in">
+        {/* Top Categories */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Categories</CardTitle>
+            <Link to="/categories"><Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1">Show All <ArrowRight className="h-3 w-3" /></Button></Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {categoryData.slice(0, 5).map((c, i) => (
+              <div key={c.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-sm">{c.name}</span>
+                </div>
+                <span className="text-sm font-mono text-muted-foreground">{c.value}%</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Top Products */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Products</CardTitle>
+            <Link to="/products"><Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1">Show All <ArrowRight className="h-3 w-3" /></Button></Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {topProducts.slice(0, 5).map((p, i) => (
+              <div key={p.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-sm truncate max-w-[120px]">{p.name}</span>
+                </div>
+                <span className="text-sm font-mono text-muted-foreground">{p.sold}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Top Customers */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Customers</CardTitle>
+            <Link to="/customers"><Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1">Show All <ArrowRight className="h-3 w-3" /></Button></Link>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {topCustomers.slice(0, 5).map((c, i) => (
+              <div key={c.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-sm">{c.name}</span>
+                </div>
+                <span className="text-sm font-mono text-muted-foreground">${c.spent.toLocaleString()}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Customer Acquisition */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Acquisition Source</CardTitle>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1">Show All <ArrowRight className="h-3 w-3" /></Button>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {customerAcquisition.slice(0, 5).map((c, i) => (
+              <div key={c.source} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-sm">{c.source}</span>
+                </div>
+                <span className="text-sm font-mono text-muted-foreground">{c.value}%</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Employees & Missing Products */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2 animate-fade-in">
+        {/* Employees */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Order Status Breakdown</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Employees by Role</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={employeeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="role" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip {...chartTooltipStyle} />
+                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Bar dataKey="active" fill="hsl(142,71%,45%)" radius={[2, 2, 0, 0]} name="Active" />
+                <Bar dataKey="inactive" fill="hsl(0,84%,60%)" radius={[2, 2, 0, 0]} name="Inactive" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Missing Products */}
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Missing Products</CardTitle>
+              <div className="flex gap-4 mt-1">
+                <span className="text-xs text-muted-foreground">Items: <strong className="text-foreground">9</strong></span>
+                <span className="text-xs text-muted-foreground">Est. Loss: <strong className="text-destructive">$688</strong></span>
+              </div>
+            </div>
+            <Link to="/products/missing"><Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1">View All <ArrowRight className="h-3 w-3" /></Button></Link>
+          </CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full">
+              <thead><tr className="border-b border-border text-[11px] text-muted-foreground"><th className="px-5 py-2 text-left font-medium">Product</th><th className="px-3 py-2 text-right font-medium">Count</th><th className="px-5 py-2 text-right font-medium">Loss</th></tr></thead>
+              <tbody>
+                {missingProducts.map((p) => (
+                  <tr key={p.name} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                    <td className="px-5 py-2.5 text-sm font-medium">{p.name}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm text-warning">{p.count}</td>
+                    <td className="px-5 py-2.5 text-right font-mono text-sm text-destructive">${p.loss}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Order Analytics & Courier Performance */}
+      <div className="mb-6 grid gap-4 lg:grid-cols-2 animate-fade-in">
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Order Analytics</CardTitle>
+            <Tabs defaultValue="monthly" className="h-auto">
+              <TabsList className="h-7 bg-secondary"><TabsTrigger value="monthly" className="text-[10px] h-5 px-2">Monthly</TabsTrigger><TabsTrigger value="yearly" className="text-[10px] h-5 px-2">Yearly</TabsTrigger></TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={orderStatusData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis dataKey="month" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip {...chartTooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: "11px" }} />
                 <Area type="monotone" dataKey="delivered" stackId="1" fill="hsl(142,71%,45%)" stroke="hsl(142,71%,45%)" fillOpacity={0.6} name="Delivered" />
@@ -107,285 +288,76 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Distribution: Channel & Region */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="border-border bg-card">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">By Channel</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={ordersByChannel} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none">
-                    {ordersByChannel.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                  </Pie>
-                  <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`${v}%`, undefined]} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
-                {ordersByChannel.map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
-                    {item.name}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-card">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">By Region</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={ordersByRegion} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none">
-                    {ordersByRegion.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                  </Pie>
-                  <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`${v}%`, undefined]} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
-                {ordersByRegion.map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
-                    {item.name}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Product & Customer Insights */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        {/* Top Products */}
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Selling Products</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">Product</th>
-                  <th className="px-3 py-2 text-right font-medium">Sold</th>
-                  <th className="px-3 py-2 text-right font-medium">Revenue</th>
-                  <th className="px-5 py-2 text-right font-medium">Stock</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topProducts.map((p) => (
-                  <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                    <td className="px-5 py-2.5">
-                      <div className="text-sm font-medium">{p.name}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground">{p.sku}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm">{p.sold.toLocaleString()}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm">${p.revenue.toLocaleString()}</td>
-                    <td className="px-5 py-2.5 text-right font-mono text-sm">{p.stock}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-
-        {/* Top Customers */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Customers</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">Customer</th>
-                  <th className="px-3 py-2 text-right font-medium">Orders</th>
-                  <th className="px-5 py-2 text-right font-medium">Spent</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topCustomers.map((c) => (
-                  <tr key={c.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                    <td className="px-5 py-2.5">
-                      <div className="text-sm font-medium">{c.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{c.email}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm">{c.orders}</td>
-                    <td className="px-5 py-2.5 text-right font-mono text-sm">${c.spent.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Category & Customer Acquisition */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top Categories</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Courier Performance (Top 5)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={categoryData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis type="number" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <YAxis dataKey="name" type="category" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip {...chartTooltipStyle} />
-                <Bar dataKey="value" fill="hsl(239,84%,67%)" radius={[0, 2, 2, 0]} />
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={courierPerformance} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis type="number" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                <YAxis dataKey="courier" type="category" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+                <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`${v}%`, "On-time Rate"]} />
+                <Bar dataKey="onTime" fill="hsl(239,84%,67%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
 
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Customer Acquisition</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={customerAcquisition} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis type="number" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <YAxis dataKey="source" type="category" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-                <Tooltip {...chartTooltipStyle} />
-                <Bar dataKey="value" fill="hsl(142,71%,45%)" radius={[0, 2, 2, 0]} />
-              </BarChart>
+      {/* Distribution */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 animate-fade-in">
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-1"><CardTitle className="text-sm font-medium text-muted-foreground">Orders by Channel</CardTitle></CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={ordersByChannel} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
+                  {ordersByChannel.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                </Pie>
+                <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`${v}%`, undefined]} />
+              </PieChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Courier Performance */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Courier Performance</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">Courier</th>
-                  <th className="px-3 py-2 text-right font-medium">On-Time</th>
-                  <th className="px-5 py-2 text-right font-medium">Avg Days</th>
-                </tr>
-              </thead>
-              <tbody>
-                {courierPerformance.map((c) => (
-                  <tr key={c.courier} className="border-b border-border last:border-0">
-                    <td className="px-5 py-2.5 text-sm font-medium">{c.courier}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm">{c.onTime}%</td>
-                    <td className="px-5 py-2.5 text-right font-mono text-sm">{c.avgDays}d</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Operations Widgets */}
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-6">
-        {[
-          { label: "Processing", value: "48", icon: Clock, color: "text-warning" },
-          { label: "Out for Delivery", value: "127", icon: Truck, color: "text-primary" },
-          { label: "Cancelled", value: "12", icon: XCircle, color: "text-destructive" },
-          { label: "Categories", value: "24", icon: Layers, color: "text-muted-foreground" },
-          { label: "Stock Value", value: "$142K", icon: BarChart3, color: "text-success" },
-          { label: "Low Stock", value: "8", icon: AlertTriangle, color: "text-warning" },
-        ].map((w) => (
-          <Card key={w.label} className="border-border bg-card">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-secondary">
-                <w.icon className={`h-4 w-4 ${w.color}`} />
-              </div>
-              <div>
-                <p className="font-mono text-xl font-semibold">{w.value}</p>
-                <p className="text-[11px] text-muted-foreground">{w.label}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Low Stock & Recent Activity */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        {/* Low Stock */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-warning" />
-              <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock Alerts</CardTitle>
+            <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
+              {ordersByChannel.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                  {item.name}
+                </div>
+              ))}
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">Product</th>
-                  <th className="px-3 py-2 text-right font-medium">Stock</th>
-                  <th className="px-5 py-2 text-right font-medium">Reorder</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lowStockItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border last:border-0">
-                    <td className="px-5 py-2.5">
-                      <div className="text-sm font-medium">{item.name}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground">{item.sku}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-destructive">{item.stock}</td>
-                    <td className="px-5 py-2.5 text-right font-mono text-sm text-muted-foreground">{item.reorderLevel}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </CardContent>
         </Card>
 
-        {/* Recent Transactions */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">ID</th>
-                  <th className="px-3 py-2 text-left font-medium">Type</th>
-                  <th className="px-3 py-2 text-right font-medium">Amount</th>
-                  <th className="px-5 py-2 text-right font-medium">Method</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTransactions.map((t) => (
-                  <tr key={t.id} className="border-b border-border last:border-0">
-                    <td className="px-5 py-2.5 font-mono text-sm">{t.id}</td>
-                    <td className="px-3 py-2.5 text-sm">{t.type}</td>
-                    <td className={`px-3 py-2.5 text-right font-mono text-sm ${t.amount < 0 ? 'text-destructive' : 'text-success'}`}>
-                      {t.amount < 0 ? '-' : ''}${Math.abs(t.amount).toLocaleString()}
-                    </td>
-                    <td className="px-5 py-2.5 text-right text-sm text-muted-foreground">{t.method}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <Card className="border-border bg-card transition-shadow hover:shadow-lg">
+          <CardHeader className="pb-1"><CardTitle className="text-sm font-medium text-muted-foreground">Orders by Region</CardTitle></CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={ordersByRegion} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" stroke="none">
+                  {ordersByRegion.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                </Pie>
+                <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`${v}%`, undefined]} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1">
+              {ordersByRegion.map((item, i) => (
+                <div key={item.name} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                  {item.name}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Orders */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Recent Orders</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full">
+      <Card className="border-border bg-card animate-fade-in">
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Recent Orders</CardTitle></CardHeader>
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-border text-[11px] text-muted-foreground">
                 <th className="px-5 py-2 text-left font-medium">Order ID</th>
@@ -398,7 +370,7 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {recentOrders.map((o) => (
-                <tr key={o.id} className="border-b border-border last:border-0 hover:bg-secondary/50 cursor-pointer">
+                <tr key={o.id} className="border-b border-border last:border-0 hover:bg-secondary/50 cursor-pointer transition-colors">
                   <td className="px-5 py-2.5 font-mono text-sm font-medium text-primary">{o.id}</td>
                   <td className="px-3 py-2.5 text-sm">{o.customer}</td>
                   <td className="px-3 py-2.5 font-mono text-sm text-muted-foreground">{o.date}</td>

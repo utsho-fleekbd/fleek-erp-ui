@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 
@@ -6,12 +7,14 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <AppSidebar />
-      <div className="pl-60">
-        <AppHeader />
-        <main className="min-h-[calc(100vh-4rem)] p-6 scrollbar-thin">
+      <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="lg:pl-64 transition-all duration-300">
+        <AppHeader onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="min-h-[calc(100vh-4rem)] p-4 lg:p-6 scrollbar-thin">
           {children}
         </main>
       </div>
