@@ -1,15 +1,35 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, ShoppingCart, Package, Users, Warehouse, Truck,
-  CreditCard, FileText, BarChart3, Settings, ChevronDown, ChevronRight,
-  Globe, Zap, DollarSign, Megaphone, Shield, Building2, X, LogOut, User,
-  Tag, BoxIcon,
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Users,
+  Warehouse,
+  Truck,
+  CreditCard,
+  FileText,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  Globe,
+  Zap,
+  DollarSign,
+  Megaphone,
+  X,
+  LogOut,
+  User,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 interface NavItem {
@@ -22,13 +42,17 @@ interface NavItem {
 const navigation: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   {
-    label: "Orders", icon: ShoppingCart, children: [
+    label: "Orders",
+    icon: ShoppingCart,
+    children: [
       { label: "All Orders", href: "/orders" },
       { label: "Missing Products", href: "/orders/missing" },
     ],
   },
   {
-    label: "Products", icon: Package, children: [
+    label: "Products",
+    icon: Package,
+    children: [
       { label: "All Products", href: "/products" },
       { label: "Missing Products", href: "/products/missing" },
     ],
@@ -36,20 +60,26 @@ const navigation: NavItem[] = [
   { label: "Categories", icon: Tag, href: "/categories" },
   { label: "Customers", icon: Users, href: "/customers" },
   {
-    label: "Inventory", icon: Warehouse, children: [
+    label: "Inventory",
+    icon: Warehouse,
+    children: [
       { label: "Stock", href: "/inventory" },
       { label: "Barcodes", href: "/inventory/barcodes" },
     ],
   },
   {
-    label: "Couriers", icon: Truck, children: [
+    label: "Couriers",
+    icon: Truck,
+    children: [
       { label: "Companies", href: "/couriers" },
       { label: "Delivery Zones", href: "/couriers/zones" },
       { label: "Shipping Config", href: "/couriers/config" },
     ],
   },
   {
-    label: "Finance", icon: DollarSign, children: [
+    label: "Finance",
+    icon: DollarSign,
+    children: [
       { label: "Accounts", href: "/finance/accounts" },
       { label: "Transactions", href: "/finance/transactions" },
       { label: "Expenses", href: "/finance/expenses" },
@@ -57,7 +87,9 @@ const navigation: NavItem[] = [
     ],
   },
   {
-    label: "Marketing", icon: Megaphone, children: [
+    label: "Marketing",
+    icon: Megaphone,
+    children: [
       { label: "SMS Campaigns", href: "/marketing/sms" },
       { label: "SMS Credits", href: "/marketing/credits" },
       { label: "Promotions", href: "/marketing/promotions" },
@@ -65,7 +97,9 @@ const navigation: NavItem[] = [
     ],
   },
   {
-    label: "Websites", icon: Globe, children: [
+    label: "Websites",
+    icon: Globe,
+    children: [
       { label: "My Websites", href: "/websites" },
       { label: "Templates", href: "/websites/templates" },
       { label: "AI Generator", href: "/websites/ai" },
@@ -73,7 +107,9 @@ const navigation: NavItem[] = [
   },
   { label: "Reports", icon: BarChart3, href: "/reports" },
   {
-    label: "Settings", icon: Settings, children: [
+    label: "Settings",
+    icon: Settings,
+    children: [
       { label: "Business", href: "/settings/business" },
       { label: "Warehouse", href: "/settings/warehouse" },
       { label: "Brand", href: "/settings/brand" },
@@ -121,22 +157,32 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
     <>
       {/* Overlay for mobile */}
       {open && (
-        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
       )}
 
-      <aside className={cn(
-        "fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300",
-        open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300",
+          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        )}
+      >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Zap className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-base font-semibold text-foreground">Fleek ERP</span>
+            <span className="text-base font-semibold text-foreground">
+              Fleek ERP
+            </span>
           </div>
-          <button onClick={onClose} className="rounded p-1 text-muted-foreground hover:text-foreground lg:hidden">
+          <button
+            onClick={onClose}
+            className="rounded p-1 text-muted-foreground hover:text-foreground lg:hidden"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -160,7 +206,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                       "flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium transition-all duration-200",
                       isActive
                         ? "bg-sidebar-accent text-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -180,7 +226,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                       "flex h-9 w-full items-center gap-3 rounded-md px-3 text-sm font-medium transition-all duration-200",
                       isActive
                         ? "text-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -191,10 +237,14 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                       <ChevronRight className="h-3.5 w-3.5 opacity-50 transition-transform duration-200" />
                     )}
                   </button>
-                  <div className={cn(
-                    "ml-4 flex flex-col gap-0.5 border-l border-sidebar-border pl-3 overflow-hidden transition-all duration-300",
-                    isOpen ? "mt-0.5 max-h-96 opacity-100" : "max-h-0 opacity-0"
-                  )}>
+                  <div
+                    className={cn(
+                      "ml-4 flex flex-col gap-0.5 border-l border-sidebar-border pl-3 overflow-hidden transition-all duration-300",
+                      isOpen
+                        ? "mt-0.5 max-h-96 opacity-100"
+                        : "max-h-0 opacity-0",
+                    )}
+                  >
                     {item.children!.map((child) => (
                       <Link
                         key={child.href}
@@ -204,7 +254,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                           "flex h-8 items-center rounded-md px-3 text-sm transition-colors duration-200",
                           location.pathname === child.href
                             ? "bg-sidebar-accent text-foreground font-medium"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
                         {child.label}
@@ -226,17 +276,25 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                   JD
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-foreground">John Doe</div>
+                  <div className="text-sm font-medium text-foreground">
+                    John Doe
+                  </div>
                   <div className="text-[10px] text-muted-foreground">Admin</div>
                 </div>
                 <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-48">
-              <DropdownMenuItem className="gap-2"><User className="h-4 w-4" /> Profile</DropdownMenuItem>
-              <DropdownMenuItem className="gap-2"><Settings className="h-4 w-4" /> Account Settings</DropdownMenuItem>
+              <DropdownMenuItem className="gap-2">
+                <User className="h-4 w-4" /> Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2">
+                <Settings className="h-4 w-4" /> Account Settings
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-destructive"><LogOut className="h-4 w-4" /> Sign out</DropdownMenuItem>
+              <DropdownMenuItem className="gap-2 text-destructive">
+                <LogOut className="h-4 w-4" /> Sign out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
