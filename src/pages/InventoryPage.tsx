@@ -1,13 +1,18 @@
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { lowStockItems } from "@/lib/mock-data";
-import { Warehouse, AlertTriangle, Package, ArrowUpDown } from "lucide-react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
+import { Warehouse, AlertTriangle, ArrowUpDown, Search, Plus, Eye, Printer, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTheme } from "next-themes";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const warehouseData = [
   { name: "Main Warehouse", location: "New York", items: 4521, capacity: 85, value: 89400 },
@@ -31,11 +36,6 @@ const stockByCategory = [
   { category: "Beauty", value: 8700 },
 ];
 
-const chartTooltipStyle = {
-  contentStyle: { background: "hsl(240 6% 10%)", border: "1px solid hsl(240 4% 20%)", borderRadius: "6px", fontSize: "12px" },
-  labelStyle: { color: "hsl(240 5% 96%)" },
-};
-
 const movementTypeStyles: Record<string, string> = {
   IN: "bg-success/10 text-success border-success/20",
   OUT: "bg-warning/10 text-warning border-warning/20",
@@ -43,138 +43,143 @@ const movementTypeStyles: Record<string, string> = {
   DAMAGE: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
+const stockProducts = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  name: ["Wireless Headphones", "Smart Watch", "Cotton T-Shirt", "Bluetooth Speaker", "Running Shoes"][i % 5],
+  business: i % 3 === 0 ? ["Acme Store", "Global Mart"] : ["Acme Store"],
+  image: "/placeholder.svg",
+  price: Math.round(Math.random() * 200 + 20),
+  stock: Math.floor(Math.random() * 300),
+}));
+
+const barcodes = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  productName: ["Wireless Headphones", "Smart Watch", "Cotton T-Shirt", "Bluetooth Speaker", "Running Shoes"][i % 5],
+  barcode: `${8900000000 + i * 13}`,
+  image: "/placeholder.svg",
+}));
+
 export default function InventoryPage() {
-  return (
-    <AppLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Inventory</h1>
-        <p className="text-sm text-muted-foreground">Manage stock across warehouses</p>
-      </div>
+  const location = useLocation();
+  const isBarcode = location.pathname === "/inventory/barcodes";
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const gridColor = isDark ? "hsl(240 4% 20%)" : "hsl(240 6% 90%)";
+  const tickColor = isDark ? "hsl(240 5% 65%)" : "hsl(240 4% 46%)";
+  const [addStockOpen, setAddStockOpen] = useState(false);
+  const [viewProduct, setViewProduct] = useState<typeof stockProducts[0] | null>(null);
 
-      {/* Warehouse cards */}
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        {warehouseData.map((w) => (
-          <Card key={w.name} className="border-border bg-card">
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium">{w.name}</p>
-                  <p className="text-xs text-muted-foreground">{w.location}</p>
-                </div>
-                <Warehouse className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Capacity</span>
-                  <span className="font-mono">{w.capacity}%</span>
-                </div>
-                <Progress value={w.capacity} className="h-1.5 [&>div]:rounded-none" />
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">{w.items.toLocaleString()} items</span>
-                  <span className="font-mono font-medium">${(w.value / 1000).toFixed(1)}K</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+  const chartTooltipStyle = {
+    contentStyle: { background: isDark ? "hsl(240 6% 10%)" : "hsl(0 0% 100%)", border: `1px solid ${gridColor}`, borderRadius: "6px", fontSize: "12px" },
+    labelStyle: { color: isDark ? "hsl(240 5% 96%)" : "hsl(240 10% 10%)" },
+  };
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        {/* Stock Value by Category */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Stock Value by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={stockByCategory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 4% 20%)" />
-                <XAxis dataKey="category" tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(240 5% 65%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
-                <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, "Value"]} />
-                <Bar dataKey="value" fill="hsl(239,84%,67%)" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Alerts */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-warning" />
-              <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock Alerts</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-[11px] text-muted-foreground">
-                  <th className="px-5 py-2 text-left font-medium">Product</th>
-                  <th className="px-3 py-2 text-right font-medium">Current</th>
-                  <th className="px-3 py-2 text-right font-medium">Reorder Level</th>
-                  <th className="px-5 py-2 text-right font-medium">Action</th>
-                </tr>
-              </thead>
+  if (isBarcode) {
+    return (
+      <AppLayout>
+        <div className="mb-6 animate-fade-in"><h1 className="text-2xl font-semibold">Barcodes</h1><p className="text-sm text-muted-foreground">{barcodes.length} barcodes</p></div>
+        <Card className="border-border bg-card animate-fade-in stagger-1">
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full min-w-[500px]">
+              <thead><tr className="border-b border-border text-[11px] text-muted-foreground">
+                <th className="px-4 py-3 text-left font-medium">Product</th><th className="px-3 py-3 text-left font-medium">Barcode</th><th className="px-4 py-3 text-center font-medium">Actions</th>
+              </tr></thead>
               <tbody>
-                {lowStockItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border last:border-0">
-                    <td className="px-5 py-3">
-                      <div className="text-sm font-medium">{item.name}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground">{item.sku}</div>
-                    </td>
-                    <td className="px-3 py-3 text-right font-mono text-sm text-destructive">{item.stock}</td>
-                    <td className="px-3 py-3 text-right font-mono text-sm text-muted-foreground">{item.reorderLevel}</td>
-                    <td className="px-5 py-3 text-right">
-                      <Button variant="outline" size="sm" className="h-7 text-xs">Reorder</Button>
-                    </td>
+                {barcodes.map((b) => (
+                  <tr key={b.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                    <td className="px-4 py-3 flex items-center gap-3"><div className="h-8 w-8 rounded bg-secondary" /><span className="text-sm font-medium">{b.productName}</span></td>
+                    <td className="px-3 py-3 font-mono text-sm text-muted-foreground">{b.barcode}</td>
+                    <td className="px-4 py-3"><div className="flex items-center justify-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7"><Printer className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7"><Eye className="h-3.5 w-3.5" /></Button>
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </CardContent>
         </Card>
-      </div>
+      </AppLayout>
+    );
+  }
 
-      {/* Stock Movements */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Recent Stock Movements</CardTitle>
-            <Button variant="outline" size="sm" className="gap-2 text-xs"><ArrowUpDown className="h-3 w-3" /> New Entry</Button>
+  return (
+    <AppLayout>
+      <div className="mb-6 animate-fade-in"><h1 className="text-2xl font-semibold">Inventory</h1><p className="text-sm text-muted-foreground">Manage stock across warehouses</p></div>
+
+      <Tabs defaultValue="stock" className="space-y-4 animate-fade-in stagger-1">
+        <TabsList className="bg-secondary"><TabsTrigger value="stock">Stock</TabsTrigger><TabsTrigger value="overview">Overview</TabsTrigger></TabsList>
+
+        <TabsContent value="stock">
+          <Card className="border-border bg-card">
+            <CardContent className="p-0 overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead><tr className="border-b border-border text-[11px] text-muted-foreground">
+                  <th className="px-4 py-3 text-left font-medium">Product</th><th className="px-3 py-3 text-left font-medium">Business</th><th className="px-3 py-3 text-right font-medium">Price</th><th className="px-3 py-3 text-right font-medium">Stock</th><th className="px-4 py-3 text-center font-medium">Actions</th>
+                </tr></thead>
+                <tbody>
+                  {stockProducts.map((p) => (
+                    <tr key={p.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                      <td className="px-4 py-3 flex items-center gap-3"><div className="h-8 w-8 rounded bg-secondary shrink-0" /><span className="text-sm font-medium">{p.name}</span></td>
+                      <td className="px-3 py-3"><div className="flex flex-wrap gap-1">{p.business.map(b => <Badge key={b} variant="outline" className="text-[10px]">{b}</Badge>)}</div></td>
+                      <td className="px-3 py-3 text-right font-mono text-sm">${p.price}</td>
+                      <td className="px-3 py-3 text-right font-mono text-sm">{p.stock}</td>
+                      <td className="px-4 py-3"><div className="flex items-center justify-center gap-1">
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setAddStockOpen(true)}>Add Stock</Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setViewProduct(p)}><Eye className="h-3.5 w-3.5" /></Button>
+                      </div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            {warehouseData.map((w) => (
+              <Card key={w.name} className="border-border bg-card">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between"><div><p className="text-sm font-medium">{w.name}</p><p className="text-xs text-muted-foreground">{w.location}</p></div><Warehouse className="h-5 w-5 text-muted-foreground" /></div>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-xs text-muted-foreground"><span>Capacity</span><span className="font-mono">{w.capacity}%</span></div>
+                    <Progress value={w.capacity} className="h-1.5" />
+                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">{w.items.toLocaleString()} items</span><span className="font-mono font-medium">${(w.value / 1000).toFixed(1)}K</span></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border text-[11px] text-muted-foreground">
-                <th className="px-5 py-2 text-left font-medium">ID</th>
-                <th className="px-3 py-2 text-center font-medium">Type</th>
-                <th className="px-3 py-2 text-left font-medium">Product</th>
-                <th className="px-3 py-2 text-right font-medium">Qty</th>
-                <th className="px-3 py-2 text-left font-medium">Warehouse</th>
-                <th className="px-5 py-2 text-left font-medium">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockMovements.map((m) => (
-                <tr key={m.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                  <td className="px-5 py-3 font-mono text-sm">{m.id}</td>
-                  <td className="px-3 py-3 text-center">
-                    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${movementTypeStyles[m.type]}`}>
-                      {m.type}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-sm">{m.product}</td>
-                  <td className="px-3 py-3 text-right font-mono text-sm">{m.qty}</td>
-                  <td className="px-3 py-3 text-sm text-muted-foreground">{m.warehouse}</td>
-                  <td className="px-5 py-3 font-mono text-sm text-muted-foreground">{m.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+
+          <Card className="border-border bg-card">
+            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Stock Value by Category</CardTitle></CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={stockByCategory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="category" tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v / 1000}K`} />
+                  <Tooltip {...chartTooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, "Value"]} />
+                  <Bar dataKey="value" fill="hsl(239,84%,67%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={addStockOpen} onOpenChange={setAddStockOpen}>
+        <DialogContent><DialogHeader><DialogTitle>Add Stock</DialogTitle></DialogHeader>
+          <div className="space-y-4"><div className="space-y-2"><Label>Quantity</Label><Input type="number" placeholder="0" className="bg-secondary border-border" /></div><div className="space-y-2"><Label>Warehouse</Label><Input placeholder="Main Warehouse" className="bg-secondary border-border" /></div><Button className="w-full" onClick={() => setAddStockOpen(false)}>Add Stock</Button></div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewProduct} onOpenChange={() => setViewProduct(null)}>
+        <DialogContent><DialogHeader><DialogTitle>Product Details</DialogTitle></DialogHeader>
+          {viewProduct && <div className="space-y-2"><p className="font-semibold">{viewProduct.name}</p><p className="text-sm">Price: ${viewProduct.price}</p><p className="text-sm">Stock: {viewProduct.stock}</p><div className="flex gap-1">{viewProduct.business.map(b => <Badge key={b} variant="outline">{b}</Badge>)}</div></div>}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
