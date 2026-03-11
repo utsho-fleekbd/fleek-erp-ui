@@ -508,8 +508,11 @@ export default function SettingsPage() {
             {
               key: "photo",
               label: "Photo",
-              render: () => (
-                <div className="h-8 w-8 rounded-full bg-secondary" />
+              render: ({ e }) => (
+                <img
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random() * 1000 * Math.random()}`}
+                  className="h-8 w-8 rounded-full bg-secondary"
+                />
               ),
             },
             { key: "name", label: "Name" },
@@ -541,7 +544,10 @@ export default function SettingsPage() {
               key: "photo",
               label: "Photo",
               render: () => (
-                <div className="h-8 w-8 rounded-full bg-secondary" />
+                <img
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random() * 342705 * Math.random()}`}
+                  className="h-8 w-8 rounded-full bg-secondary"
+                />
               ),
             },
             { key: "name", label: "Name" },

@@ -42,11 +42,17 @@ interface NavItem {
 const navigation: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   {
-    label: "Orders",
-    icon: ShoppingCart,
+    label: "Settings",
+    icon: Settings,
     children: [
-      { label: "All Orders", href: "/orders" },
-      { label: "Missing Products", href: "/orders/missing" },
+      { label: "Business", href: "/settings/business" },
+      { label: "Warehouse", href: "/settings/warehouse" },
+      { label: "Brand", href: "/settings/brand" },
+      { label: "Role", href: "/settings/role" },
+      { label: "Employee", href: "/settings/employee" },
+      { label: "Supplier", href: "/settings/supplier" },
+      { label: "Invoice", href: "/settings/invoice" },
+      { label: "Courier API", href: "/settings/courier-api" },
     ],
   },
   {
@@ -59,6 +65,11 @@ const navigation: NavItem[] = [
   },
   { label: "Categories", icon: Tag, href: "/categories" },
   { label: "Customers", icon: Users, href: "/customers" },
+  {
+    label: "Orders",
+    icon: ShoppingCart,
+    children: [{ label: "All Orders", href: "/orders" }],
+  },
   {
     label: "Inventory",
     icon: Warehouse,
@@ -106,20 +117,6 @@ const navigation: NavItem[] = [
     ],
   },
   { label: "Reports", icon: BarChart3, href: "/reports" },
-  {
-    label: "Settings",
-    icon: Settings,
-    children: [
-      { label: "Business", href: "/settings/business" },
-      { label: "Warehouse", href: "/settings/warehouse" },
-      { label: "Brand", href: "/settings/brand" },
-      { label: "Role", href: "/settings/role" },
-      { label: "Employee", href: "/settings/employee" },
-      { label: "Supplier", href: "/settings/supplier" },
-      { label: "Invoice", href: "/settings/invoice" },
-      { label: "Courier API", href: "/settings/courier-api" },
-    ],
-  },
 ];
 
 interface AppSidebarProps {

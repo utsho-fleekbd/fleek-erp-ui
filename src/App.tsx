@@ -1,5 +1,6 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,23 +8,23 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import RouteChangeHandler from "@/components/RouteChangeHandler";
 
-import LandingPage from "./pages/LandingPage";
-import Dashboard from "./pages/Dashboard";
-import OrdersPage from "./pages/OrdersPage";
-import ProductsPage from "./pages/ProductsPage";
-import InventoryPage from "./pages/InventoryPage";
-import CustomersPage from "./pages/CustomersPage";
-import CouriersPage from "./pages/CouriersPage";
-import FinancePage from "./pages/FinancePage";
-import MarketingPage from "./pages/MarketingPage";
-import WebsitesPage from "./pages/WebsitesPage";
-import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
-import CategoriesPage from "./pages/CategoriesPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import NotFound from "./pages/NotFound";
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const InventoryPage = lazy(() => import("./pages/InventoryPage"));
+const CustomersPage = lazy(() => import("./pages/CustomersPage"));
+const CouriersPage = lazy(() => import("./pages/CouriersPage"));
+const FinancePage = lazy(() => import("./pages/FinancePage"));
+const MarketingPage = lazy(() => import("./pages/MarketingPage"));
+const WebsitesPage = lazy(() => import("./pages/WebsitesPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const CategoriesPage = lazy(() => import("./pages/CategoriesPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -44,7 +45,6 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/orders/missing" element={<OrdersPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/missing" element={<ProductsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />

@@ -26,6 +26,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "../ui/scroll-area";
 
 const notifications = [
   {
@@ -137,7 +138,7 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
                 2 new
               </Badge>
             </div>
-            <div className="max-h-72 overflow-auto">
+            <ScrollArea className="max-h-72 w-full overflow-auto">
               {notifications.map((n) => (
                 <div
                   key={n.id}
@@ -157,7 +158,7 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
                   </div>
                 </div>
               ))}
-            </div>
+            </ScrollArea>
             <div className="border-t border-border px-4 py-2 text-center">
               <button className="text-xs text-primary hover:underline">
                 View all notifications
